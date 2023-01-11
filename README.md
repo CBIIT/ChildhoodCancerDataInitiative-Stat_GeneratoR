@@ -1,5 +1,5 @@
 # ChildhoodCancerDataInitiative-Stat_GeneratoR
-This takes a validated indexed CCDI template, and/or the newest version of dbGaP submission for the study.
+This takes a validated indexed CCDI template and/or the newest version of dbGaP submission for the study, and outputs a basic statistics file.
 
 
 To run the script on a validated CCDI template, run the following command in a terminal where R is installed for help.
