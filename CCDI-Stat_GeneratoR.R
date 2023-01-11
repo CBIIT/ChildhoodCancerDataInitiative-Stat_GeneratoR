@@ -90,7 +90,7 @@ if (!is.null(opt$sample_attribute)){
 }
 
 #A start message for the user that the validation is underway.
-cat("The data file is being validated at this time.\n")
+cat("The data file stats are being generated at this time.\n")
 
 
 ###############
