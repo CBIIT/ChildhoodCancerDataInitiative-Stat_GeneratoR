@@ -1,0 +1,5 @@
+SUBJECT_ID	CONSENT	SEX
+a	1	1
+b	1	2
+e	1	1
+f	1	2
