@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-#Childhood Cancer Data Initiative - Stat_GeneratoR R v2.0.0
+#Childrens Cancer Data Initiative - Stat_GeneratoR R v2.0.0
 
 
 ##################
