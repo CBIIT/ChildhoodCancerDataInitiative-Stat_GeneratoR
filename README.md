@@ -1,4 +1,4 @@
-# ChildrensCancerDataInitiative-Stat_GeneratoR
+# ChildhoodCancerDataInitiative-Stat_GeneratoR
 This takes a validated indexed CCDI template and/or the newest version of dbGaP submission for the study, and outputs a basic statistics file.
 
 
@@ -41,5 +41,5 @@ This is a validation output for a_all_pass_CCDI_Submission_Template_v1.0.2.
 
 Process Complete.
 
-The output file can be found here: ChildrensCancerDataInitiative-Stat_GeneratoR/test_files/
+The output file can be found here: ChildhoodCancerDataInitiative-Stat_GeneratoR/test_files/
 ```
