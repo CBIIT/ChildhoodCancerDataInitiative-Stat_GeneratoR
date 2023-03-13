@@ -22,7 +22,7 @@
 ##################
 
 #List of needed packages
-list_of_packages=c("dplyr","readr","stringi","readxl","optparse","janitor","tools")
+list_of_packages=c("dplyr","readr","stringi","readxl","ggplot2","ggthemes","grid","gridExtra","viridis","optparse",'janitor',"tools")
 
 #Based on the packages that are present, install ones that are required.
 new.packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
@@ -33,6 +33,11 @@ suppressMessages(library(dplyr,verbose = F))
 suppressMessages(library(readr,verbose = F))
 suppressMessages(library(stringi,verbose = F))
 suppressMessages(library(readxl,verbose = F))
+suppressMessages(library(ggplot2,verbose = F))
+suppressMessages(library(ggthemes,verbose = F))
+suppressMessages(library(grid,verbose = F))
+suppressMessages(library(gridExtra,verbose = F))
+suppressMessages(library(viridis,verbose = F))
 suppressMessages(library(optparse,verbose = F))
 suppressMessages(library(janitor,verbose = F))
 suppressMessages(library(tools,verbose = F))
@@ -193,11 +198,24 @@ cat(paste("This is a validation output for ",file_name,".\n\n",sep = ""))
 sink(paste(path,output_file,".txt",sep = ""))
 
 if (file_path_null==FALSE){
+  
+  cat("Below is the stat output file for: ",file_name,"\n\n",sep = "")
+  
   #number of unique participants in the submission
-  participant_count=length(unique(workbook_list['participant'][[1]]$participant_id))
+  if (!is.null(workbook_list['participant'][[1]])){
+    participant_count=length(unique(workbook_list['participant'][[1]]$participant_id))
+    cat("Number of participants: ",participant_count,"\n",sep = "")
+  }else{
+    participant_count=NA
+  }
   
   #number of unique samples in the submission
-  sample_count=length(unique(workbook_list['sample'][[1]]$sample_id))
+  if (!is.null(workbook_list['sample'][[1]])){
+    sample_count=length(unique(workbook_list['sample'][[1]]$sample_id))
+    cat("Number of samples: ", sample_count, "\n",sep = "")
+  }else{
+    sample_count=NA
+  }
   
   #files need to be concatenated across all nodes that have file values.
   df_all_files=as.data.frame(matrix(nrow=0,ncol = 8))
@@ -216,33 +234,102 @@ if (file_path_null==FALSE){
   
   #number of unique files in the submission
   file_count=length(unique(df_all_files$file_url_in_cds))
+  cat("Number of Files: ", file_count,"\n",sep = "")
   
   #file size in Tb in the submission
   file_size=sum(as.numeric(df_all_files$file_size),na.rm = T)/1e12
+  cat("File size (Tb): ",file_size,"\n",sep = "")
+  
+  #number of each gender in the submission
+  if (!is.null(workbook_list['participant'][[1]])){
+    gender_count=count(group_by(unique(select(workbook_list['participant'][[1]], participant_id,gender)), gender))
+    
+    cat("\nGender:\n")
+    for (x in 1:dim(gender_count)[1]){
+      cat("\t",gender_count[x,1][[1]],": ",gender_count[x,"n"][[1]],"\n",sep = "")
+    }
+  }else{
+    gender_count=NA
+  }
+  
+  #number of each race in the submission
+  if (!is.null(workbook_list['participant'][[1]])){
+    race_count=count(group_by(unique(select(workbook_list['participant'][[1]], participant_id,race)), race))
+    
+    cat("\nRace:\n")
+    for (x in 1:dim(race_count)[1]){
+      cat("\t",race_count[x,1][[1]],": ",race_count[x,"n"][[1]],"\n",sep = "")
+    }
+  }else{
+    race_count=NA
+  }
+  
+  #number of each ethnicity in the submission
+  if (!is.null(workbook_list['participant'][[1]])){
+    ethnicity_count=count(group_by(unique(select(workbook_list['participant'][[1]], participant_id,ethnicity)), ethnicity))
+    
+    cat("\nEthnicity:\n")
+    for (x in 1:dim(ethnicity_count)[1]){
+      cat("\t",ethnicity_count[x,1][[1]],": ",ethnicity_count[x,"n"][[1]],"\n",sep = "")
+    }
+  }else{
+    ethnicity_count=NA
+  }
+  
+  #number of each sample type in the submission
+  if (!is.null(workbook_list['sample'][[1]])){
+    sample_type_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,sample_type)),-n),sample_type))
+    
+    cat("\nSample Type:\n")
+    for (x in 1:dim(sample_type_count)[1]){
+      cat("\t",sample_type_count[x,1][[1]],": ",sample_type_count[x,"n"][[1]],"\n",sep = "")
+    }
+  }else{
+    sample_type_count=NA
+  }
   
   #number of each file type
   file_type_count=count(group_by(df_all_files,file_type))
-  
-  #number of each gender in the submission
-  gender_count=count(group_by(unique(select(workbook_list['participant'][[1]], participant_id,gender)), gender))
-  
-  #number of each race in the submission
-  race_count=count(group_by(unique(select(workbook_list['participant'][[1]], participant_id,race)), race))
-  
-  #number of each ethnicity in the submission
-  ethnicity_count=count(group_by(unique(select(workbook_list['participant'][[1]], participant_id,ethnicity)), ethnicity))
-  
-  #number of each sample type in the submission
-  sample_type_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,sample_type)),-n),sample_type))
+  cat("\nFile Type:\n")
+  for (x in 1:dim(file_type_count)[1]){
+    cat("\t",file_type_count[x,1][[1]],": ",file_type_count[x,"n"][[1]],"\n",sep = "")
+  }
   
   #number of each library_strategy in the submission
-  library_strategy_count=count(group_by(workbook_list['sequencing_file'][[1]],library_strategy))
+  if (!is.null(workbook_list['sequencing_file'][[1]])){
+    library_strategy_count=count(group_by(workbook_list['sequencing_file'][[1]],library_strategy))
+    
+    cat("\nLibrary Strategy:\n")
+    for (x in 1:dim(library_strategy_count)[1]){
+      cat("\t",library_strategy_count[x,1][[1]],": ",library_strategy_count[x,"n"][[1]],"\n",sep = "")
+    }
+  }else{
+    library_strategy_count=NA
+  }
   
   #number of each library_source in the submission
-  library_source_count=count(group_by(workbook_list['sequencing_file'][[1]],library_source))
+  if (!is.null(workbook_list['sequencing_file'][[1]])){
+    library_source_count=count(group_by(workbook_list['sequencing_file'][[1]],library_source))
+    
+    cat("\nLibrary Source:\n")
+    for (x in 1:dim(library_source_count)[1]){
+      cat("\t",library_source_count[x,1][[1]],": ",library_source_count[x,"n"][[1]],"\n",sep = "")
+    }
+  }else{
+    library_source_count=NA
+  }
   
   #number of each sample_anatomic_site in the submission
-  anatomic_site_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,sample_anatomic_site)),-n),sample_anatomic_site))
+  if (!is.null(workbook_list['sample'][[1]])){
+    anatomic_site_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,sample_anatomic_site)),-n),sample_anatomic_site))
+    
+    cat("\nSample Anatomic Site:\n")
+    for (x in 1:dim(anatomic_site_count)[1]){
+      cat("\t",anatomic_site_count[x,1][[1]],": ",anatomic_site_count[x,"n"][[1]],"\n",sep = "")
+    }
+  }else{
+    anatomic_site_count=NA
+  }
   
   
   #diagnoses need to be concatenated across all nodes that have diagnosis values.
@@ -261,78 +348,181 @@ if (file_path_null==FALSE){
     }
   }
   
-  #number of each primary_diagnosis in the submission
-  primary_diagnosis_count=count(group_by(select(count(group_by(df_all_diag,id,primary_diagnosis)),-n),primary_diagnosis))
+  if (dim(df_all_diag)[1]>0){
+    #number of each primary_diagnosis in the submission
+    primary_diagnosis_count=count(group_by(select(count(group_by(df_all_diag,id,primary_diagnosis)),-n),primary_diagnosis))
+    
+    cat("\nPrimary Diagnosis:\n")
+    for (x in 1:dim(primary_diagnosis_count)[1]){
+      cat("\t",primary_diagnosis_count[x,1][[1]],": ",primary_diagnosis_count[x,"n"][[1]],"\n",sep = "")
+    }
+    
+    #number of each disease_type in the submission
+    disease_type_count=count(group_by(select(count(group_by(df_all_diag,id,disease_type)),-n),disease_type))
+    
+    cat("\nDisease Type:\n")
+    for (x in 1:dim(disease_type_count)[1]){
+      cat("\t",disease_type_count[x,1][[1]],": ",disease_type_count[x,"n"][[1]],"\n",sep = "")
+    }
+  }else{
+    primary_diagnosis_count=NA
+    disease_type_count=NA
+  }
+  #close file
+  sink()
+
   
-  #number of each disease_type in the submission
-  disease_type_count=count(group_by(select(count(group_by(df_all_diag,id,disease_type)),-n),disease_type))
-  
-  
-  #########
+  ###############
   #
-  # Stats output
+  # Create Figures for values
   #
-  #########
+  ###############
   
-  cat("Below is the stat output file for: ",file_name,"\n\n",sep = "")
+  #Manipulate data frames to create graph-able data sets
+  df_gen_stats=tibble('participants'=participant_count,'samples'=sample_count,'files'=file_count)
+  df_gen_stats=t(df_gen_stats)
+  stat_col=rownames(df_gen_stats)
+  df_gen_stats=tibble(Count=df_gen_stats[,1])
+  df_gen_stats$Stat=stat_col
+  df_gen_stats$Size=NA
+  df_gen_stats$Size[grep(pattern = "files",x = df_gen_stats$Stat)]=paste(round(file_size,2), " Tb",sep = "")
   
-  cat("Number of participants: ",participant_count,"\n",
-      "Number of samples: ", sample_count, "\n",
-      "Number of Files: ", file_count,"\n",
-      "File size (Tb): ",file_size,"\n",sep = "")
+  file_type_count_plot=file_type_count
+  file_type_count_plot$ingest="File Type"
+  file_type_count_plot[is.na(file_type_count_plot)]<-"NA"
   
-  cat("\nGender:\n")
-  for (x in 1:dim(gender_count)[1]){
-    cat("\t",gender_count[x,1][[1]],": ",gender_count[x,"n"][[1]],"\n",sep = "")
+  #Fixes for common datasets that have over 10 values
+  if (dim(file_type_count)[1]>11){
+    file_type_count=
+      file_type_count%>%
+      arrange(desc(n))
+    cutoff_n=file_type_count$n[10]
+    other_df=filter(file_type_count, n<cutoff_n)
+    other_value=sum(other_df$n)
+    file_type_count=filter(file_type_count, n>=cutoff_n)
+    file_type_count_add=tibble(file_type="Other",n=other_value,ingest="File Type")
+    file_type_count=rbind(file_type_count,file_type_count_add)
   }
   
-  cat("\nRace:\n")
-  for (x in 1:dim(race_count)[1]){
-    cat("\t",race_count[x,1][[1]],": ",race_count[x,"n"][[1]],"\n",sep = "")
+  #Prevents output of Rplots.pdf that is generated when plots are being generated and saved.
+  pdf(NULL)
+  #Plot general stats and file type information
+  plot_gen_stats=ggplot(data = df_gen_stats, mapping = aes(x= Stat, y=Count, fill=Stat))+
+    scale_fill_viridis(discrete=TRUE,option="cividis")+
+    geom_col(alpha=0.5)+
+    geom_text(aes(label= Count, fontface="bold"),size=5,
+              position = position_stack(vjust=0.5))+
+    geom_label(mapping = aes(label=Size,  vjust=0),alpha=0, size=5, label.size = NA)+
+    guides(fill=guide_legend(title = "Statistics"))+
+    theme_few()+
+    theme(axis.text=element_text(size=12),
+          axis.ticks.x=element_blank(),
+          axis.title.x=element_blank(),
+          plot.title = element_text(hjust = 0.5))
+  
+  plot_file_stats=ggplot(data = file_type_count_plot, mapping = aes(x=ingest, y=n, fill=file_type))+
+    scale_fill_viridis(discrete=TRUE,option="cividis")+
+    geom_bar(alpha=0.5, stat = "identity")+
+    geom_text(aes(label = n, fontface="bold"),size=5,
+              position = position_stack(vjust=0.5))+
+    geom_text(aes(x=ingest, label=sum(n), y=sum(n)+(sum(n)/50)), size=5)+
+    guides(fill=guide_legend(title = "File Type"))+
+    theme_few()+
+    ggtitle(" ")+
+    labs(y="Count")+
+    theme(axis.text=element_text(size=12),
+          axis.ticks.x=element_blank(),
+          axis.title.x=element_blank(),
+          plot.title = element_text(hjust = 0.5))
+  
+  #save plot
+  suppressWarnings(ggsave(plot = grid.arrange(plot_gen_stats, plot_file_stats, nrow=1,top=textGrob("Submission Counts",gp=gpar(fontsize=20))) , filename =paste(output_file,"_gen_stats.png",sep = ""),path = path, width = 16, height = 8, units = "in", device = "png"))
+  
+  
+  #####################
+  # List of figure groupings
+  #####################
+  
+  #create lists to note which properties will be contained in the figure. It is best not to put more than 3 in a figure, but that is not a hard rule. These values can be changed in the save_plot where the ncol and nrow values are noted.
+  demo_stats=list(gender_count_plot=gender_count,race_count_plot=race_count,ethnicity_count_plot=ethnicity_count)
+  
+  library_stats=list(sample_type_count_plot=sample_type_count,library_strategy_count_plot=library_strategy_count,library_source_count_plot=library_source_count)
+  
+  diagnosis_stats=list(anatomic_site_count_plot=anatomic_site_count,primary_diagnosis_count_plot=primary_diagnosis_count,disease_type_count_plot=disease_type_count)
+  
+  grand_list=list(demo_stats=demo_stats,library_stats=library_stats,diagnosis_stats=diagnosis_stats)
+  
+  #MAKE A FOR LOOP THAT GOES THROUGH GRAND LIST AND DOES THE INGEST COLUMN AND NA FIX
+  for (sublist in names(grand_list)){
+    sublists = names(grand_list[sublist][[1]])
+    for (list in sublists){
+      dfl=grand_list[sublist][[1]][list][[1]]
+      if (any(!is.na(dfl))){
+        ingest_name=colnames(dfl)[!colnames(dfl) %in% "n"]
+        ingest_name_fixed=toTitleCase(stri_replace_all_fixed(str = ingest_name,pattern = "_", replacement = " "))
+        dfl$ingest=ingest_name_fixed
+        dfl[is.na(dfl)]<-"NA"
+        
+        if (dim(dfl)[1]>11){
+          dfl=dfl%>%
+            arrange(desc(n))
+          cutoff_n=dfl$n[10]
+          other_dfl=filter(dfl, n<cutoff_n)
+          other_value=sum(other_dfl$n)
+          dfl=filter(dfl, n>=cutoff_n)
+          dfl_add=tibble(fill_name="Other",n=other_value,ingest=ingest_name_fixed)
+          colnames(dfl_add)<-c(ingest_name,"n","ingest")
+          dfl=rbind(dfl,dfl_add)
+        }
+        
+        grand_list[sublist][[1]][list][[1]]<-dfl
+      }
+    }
   }
   
-  cat("\nEthnicity:\n")
-  for (x in 1:dim(ethnicity_count)[1]){
-    cat("\t",ethnicity_count[x,1][[1]],": ",ethnicity_count[x,"n"][[1]],"\n",sep = "")
+  #For each list, go through each data frame, and make plots for each and save grouped based on the list.
+  for (list_num in 1:length(grand_list)){
+    list_name=names(grand_list)[list_num]
+    list_ref=names(grand_list[list_num][[1]])
+    grand_list_plot=list()
+    fill_value=c()
+    
+    for (list_num_minor in 1:length(list_ref)){
+      list_list_ref=names(grand_list[list_num][[1]][list_num_minor])
+      df_list_list=grand_list[list_num][[1]][list_num_minor][[1]]
+      
+      if (any(!is.na(df_list_list))){
+        fill_value=colnames(df_list_list)[1]
+        
+        #plot it
+        plot=ggplot(data = df_list_list, mapping = aes(x=ingest,y=n,!!!ensyms(fill=fill_value)))+
+          scale_fill_viridis(discrete=TRUE,option="cividis")+
+          geom_bar(alpha=0.5, stat = "identity")+
+          geom_text(aes(label = n,family="Times New Roman", fontface="bold"),size=5,
+                    position = position_stack(vjust=0.5))+
+          geom_text(aes(x=ingest, label=sum(n), y=sum(n)+(sum(n)/50)), size=5)+
+          theme_few(base_family = "Times New Roman")+
+          ggtitle(" ")+
+          labs(y="Count")+
+          guides(fill=guide_legend(title = fill_value))+
+          theme(axis.text=element_text(size=12),
+                axis.ticks.x=element_blank(),
+                axis.title.x=element_blank(),
+                plot.title = element_text(hjust = 0.5))
+        
+        #save plot to list
+        grand_list_plot[list_ref[list_num_minor]]=list(assign(list_ref[list_num_minor],plot))
+      }
+    }
+    #save plot file
+    suppressWarnings(ggsave(plot = marrangeGrob(grand_list_plot,nrow=1,ncol=3, top=textGrob("Submission Counts",gp=gpar(fontsize=20))), filename =paste(output_file,"_",list_name,"_stats.png",sep = ""),path = path, width = 16, height = 8, units = "in", device = "png"))
+    
   }
-  
-  cat("\nSample Type:\n")
-  for (x in 1:dim(sample_type_count)[1]){
-    cat("\t",sample_type_count[x,1][[1]],": ",sample_type_count[x,"n"][[1]],"\n",sep = "")
-  }
-  
-  cat("\nFile Type:\n")
-  for (x in 1:dim(file_type_count)[1]){
-    cat("\t",file_type_count[x,1][[1]],": ",file_type_count[x,"n"][[1]],"\n",sep = "")
-  }
-  
-  cat("\nLibrary Strategy:\n")
-  for (x in 1:dim(library_strategy_count)[1]){
-    cat("\t",library_strategy_count[x,1][[1]],": ",library_strategy_count[x,"n"][[1]],"\n",sep = "")
-  }
-  
-  cat("\nLibrary Source:\n")
-  for (x in 1:dim(library_source_count)[1]){
-    cat("\t",library_source_count[x,1][[1]],": ",library_source_count[x,"n"][[1]],"\n",sep = "")
-  }
-  
-  cat("\nSample Anatomic Site:\n")
-  for (x in 1:dim(anatomic_site_count)[1]){
-    cat("\t",anatomic_site_count[x,1][[1]],": ",anatomic_site_count[x,"n"][[1]],"\n",sep = "")
-  }
-  
-  cat("\nPrimary Diagnosis:\n")
-  for (x in 1:dim(primary_diagnosis_count)[1]){
-    cat("\t",primary_diagnosis_count[x,1][[1]],": ",primary_diagnosis_count[x,"n"][[1]],"\n",sep = "")
-  }
-  
-  cat("\nDisease Type:\n")
-  for (x in 1:dim(disease_type_count)[1]){
-    cat("\t",disease_type_count[x,1][[1]],": ",disease_type_count[x,"n"][[1]],"\n",sep = "")
-  }
-  
 }else{
   cat("\n\nFor indepth stats for a specific submission, please submit the indexed manifest.\n")
+  
+  #close file
+  sink()
 }
 
 
@@ -344,6 +534,9 @@ if (file_path_null==FALSE){
 
 #Stats for subcon file
 if (!is.null(subcon_path)){
+  
+  #reopen outfile for writing.
+  sink(paste(path,output_file,".txt",sep = ""), append = TRUE)
   
   cat("\n\nBelow is the stat output file for: ",basename(subcon_path),"\n\n",sep = "")
   
@@ -366,8 +559,13 @@ if (!is.null(subcon_path)){
   for (x in 1:dim(gender_subcon_count)[1]){
     cat("\t",gender_subcon_count[x,1][[1]],": ",gender_subcon_count[x,"n"][[1]],"\n",sep = "")
   }
+  #close file
+  sink()
 }else{
   cat("\n\nFor cumulative stats of the subjects, please submit the dbGaP subject_consent data set file.\n")
+  
+  #close file
+  sink()
 }
 
 
@@ -379,6 +577,9 @@ if (!is.null(subcon_path)){
 
 #Stats for samatt file
 if (!is.null(samatt_path)){
+  
+  #reopen outfile for writing.
+  sink(paste(path,output_file,".txt",sep = ""), append = TRUE)
   
   cat("\n\nBelow is the stat output file for: ",basename(samatt_path),"\n\n",sep = "")
   
@@ -399,12 +600,15 @@ if (!is.null(samatt_path)){
   for (x in 1:dim(sample_type_samatt_count)[1]){
     cat("\t",sample_type_samatt_count[x,1][[1]],": ",sample_type_samatt_count[x,"n"][[1]],"\n",sep = "")
   }
+  #close file
+  sink()
 }else{
   cat("\n\nFor cumulative stats of the samples, please submit the dbGaP sample_attributes data set file.\n")
+  
+  #close file
+  sink()
 }
 
-
-sink()
 
 cat("\n\nProcess Complete.\n\nThe output file can be found here: ",path,"\n\n",sep = "")
 
