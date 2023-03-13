@@ -11,7 +11,7 @@ Rscript --vanilla CDS-Stat_GeneratoR.R --help
 ```
 Usage: CCDI-Stat_GeneratoR.R [options]
 
-CCDI-Stat_GeneratoR v2.0.0
+CCDI-Stat_GeneratoR v2.0.1
 
 Options:
 	-f CHARACTER, --file=CHARACTER
