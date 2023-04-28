@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 
-#Childhood Cancer Data Initiative - Stat_GeneratoR R v2.0.0
-
+#Childhood Cancer Data Initiative - Stat_GeneratoR
 
 ##################
 #
@@ -64,7 +63,7 @@ option_list = list(
 )
 
 #create list of options and values for file input
-opt_parser = OptionParser(option_list=option_list, description = "\nCCDI-Stat_GeneratoR v2.0.1")
+opt_parser = OptionParser(option_list=option_list, description = "\nCCDI-Stat_GeneratoR v2.0.2")
 opt = parse_args(opt_parser)
 
 #If no options are presented, return --help, stop and print the following message.
@@ -278,11 +277,16 @@ if (file_path_null==FALSE){
   
   #number of each sample type in the submission
   if (!is.null(workbook_list['sample'][[1]])){
-    sample_type_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,sample_type)),-n),sample_type))
-    
-    cat("\nSample Type:\n")
-    for (x in 1:dim(sample_type_count)[1]){
-      cat("\t",sample_type_count[x,1][[1]],": ",sample_type_count[x,"n"][[1]],"\n",sep = "")
+    #THIS IS A LINE THAT HANDLES THE PHASING OUT OF THE sample_type property.
+    if ('sample_type' %in% colnames(workbook_list['sample'][[1]])){
+      sample_type_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,sample_type)),-n),sample_type))
+      
+      cat("\nSample Type:\n")
+      for (x in 1:dim(sample_type_count)[1]){
+        cat("\t",sample_type_count[x,1][[1]],": ",sample_type_count[x,"n"][[1]],"\n",sep = "")
+      }
+    }else{
+      sample_type_count=NA
     }
   }else{
     sample_type_count=NA
@@ -321,11 +325,21 @@ if (file_path_null==FALSE){
   
   #number of each sample_anatomic_site in the submission
   if (!is.null(workbook_list['sample'][[1]])){
-    anatomic_site_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,sample_anatomic_site)),-n),sample_anatomic_site))
-    
-    cat("\nSample Anatomic Site:\n")
-    for (x in 1:dim(anatomic_site_count)[1]){
-      cat("\t",anatomic_site_count[x,1][[1]],": ",anatomic_site_count[x,"n"][[1]],"\n",sep = "")
+    if ('sample_anatomic_site' %in% colnames(workbook_list['sample'][[1]])){
+      anatomic_site_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,sample_anatomic_site)),-n),sample_anatomic_site))
+      
+      cat("\nSample Anatomic Site:\n")
+      for (x in 1:dim(anatomic_site_count)[1]){
+        cat("\t",anatomic_site_count[x,1][[1]],": ",anatomic_site_count[x,"n"][[1]],"\n",sep = "")
+      }
+    }else if('anatomic_site' %in% colnames(workbook_list['sample'][[1]])){
+      anatomic_site_count=count(group_by(select(count(group_by(workbook_list['sample'][[1]],sample_id,anatomic_site)),-n),anatomic_site))
+      
+      cat("\nSample Anatomic Site:\n")
+      for (x in 1:dim(anatomic_site_count)[1]){
+        cat("\t",anatomic_site_count[x,1][[1]],": ",anatomic_site_count[x,"n"][[1]],"\n",sep = "")
+      }
+      
     }
   }else{
     anatomic_site_count=NA
@@ -515,7 +529,8 @@ if (file_path_null==FALSE){
       }
     }
     #save plot file
-    suppressWarnings(ggsave(plot = marrangeGrob(grand_list_plot,nrow=1,ncol=3, top=textGrob("Submission Counts",gp=gpar(fontsize=20))), filename =paste(output_file,"_",list_name,"_stats.png",sep = ""),path = path, width = 16, height = 8, units = "in", device = "png"))
+    #number of columns determined based on 3 minus the number of missing data frames.
+    suppressWarnings(ggsave(plot = marrangeGrob(grand_list_plot,nrow=1,ncol=(3-sum(is.na((unlist(grand_list[list_num]))))), top=textGrob("Submission Counts",gp=gpar(fontsize=20))), filename =paste(output_file,"_",list_name,"_stats.png",sep = ""),path = path, width = 16, height = 8, units = "in", device = "png"))
     
   }
 }else{
