@@ -600,7 +600,7 @@ if (!is.null(samatt_path)){
   
   sample_samatt_count=length(unique(df_samatt$SAMPLE_ID))
   
-  sample_type_samatt_count=count(group_by(unique(df_samatt),SAMPLE_TYPE))
+  sample_tumor_stat_samatt_count=count(group_by(unique(df_samatt),SAMPLE_TUMOR_STATUS))
   
   
   #########
@@ -612,8 +612,8 @@ if (!is.null(samatt_path)){
   cat("Cumulative number of samples: ",sample_samatt_count,"\n",sep = "")
   
   cat("\nCumulative Sample Type:\n")
-  for (x in 1:dim(sample_type_samatt_count)[1]){
-    cat("\t",sample_type_samatt_count[x,1][[1]],": ",sample_type_samatt_count[x,"n"][[1]],"\n",sep = "")
+  for (x in 1:dim(sample_tumor_stat_samatt_count)[1]){
+    cat("\t",sample_tumor_stat_samatt_count[x,1][[1]],": ",sample_tumor_stat_samatt_count[x,"n"][[1]],"\n",sep = "")
   }
   #close file
   sink()
