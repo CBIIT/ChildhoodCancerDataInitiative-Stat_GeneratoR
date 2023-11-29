@@ -239,16 +239,16 @@ if (file_path_null==FALSE){
   file_size=sum(as.numeric(df_all_files$file_size),na.rm = T)/1e12
   cat("File size (Tb): ",file_size,"\n",sep = "")
   
-  #number of each gender in the submission
+  #number of each sex_at_birth in the submission
   if (!is.null(workbook_list['participant'][[1]])){
-    gender_count=count(group_by(unique(select(workbook_list['participant'][[1]], participant_id,gender)), gender))
+    sex_at_birth_count=count(group_by(unique(select(workbook_list['participant'][[1]], participant_id,sex_at_birth)), sex_at_birth))
     
-    cat("\nGender:\n")
-    for (x in 1:dim(gender_count)[1]){
-      cat("\t",gender_count[x,1][[1]],": ",gender_count[x,"n"][[1]],"\n",sep = "")
+    cat("\nsex_at_birth:\n")
+    for (x in 1:dim(sex_at_birth_count)[1]){
+      cat("\t",sex_at_birth_count[x,1][[1]],": ",sex_at_birth_count[x,"n"][[1]],"\n",sep = "")
     }
   }else{
-    gender_count=NA
+    sex_at_birth_count=NA
   }
   
   #number of each race in the submission
@@ -458,7 +458,7 @@ if (file_path_null==FALSE){
   #####################
   
   #create lists to note which properties will be contained in the figure. It is best not to put more than 3 in a figure, but that is not a hard rule. These values can be changed in the save_plot where the ncol and nrow values are noted.
-  demo_stats=list(gender_count_plot=gender_count,race_count_plot=race_count,ethnicity_count_plot=ethnicity_count)
+  demo_stats=list(sex_at_birth_count_plot=sex_at_birth_count,race_count_plot=race_count,ethnicity_count_plot=ethnicity_count)
   
   library_stats=list(sample_type_count_plot=sample_type_count,library_strategy_count_plot=library_strategy_count,library_source_count_plot=library_source_count)
   
@@ -557,9 +557,9 @@ if (!is.null(subcon_path)){
   
   participant_subcon_count=length(unique(df_subcon$SUBJECT_ID))
   
-  gender_subcon_count=count(group_by(unique(df_subcon),SEX))
-  gender_subcon_count$SEX[grep(pattern = TRUE, x = gender_subcon_count$SEX %in% "1")]<-"Male"
-  gender_subcon_count$SEX[grep(pattern = TRUE, x = gender_subcon_count$SEX %in% "2")]<-"Female"
+  sex_at_birth_subcon_count=count(group_by(unique(df_subcon),SEX))
+  sex_at_birth_subcon_count$SEX[grep(pattern = TRUE, x = sex_at_birth_subcon_count$SEX %in% "1")]<-"Male"
+  sex_at_birth_subcon_count$SEX[grep(pattern = TRUE, x = sex_at_birth_subcon_count$SEX %in% "2")]<-"Female"
   
   
   #########
@@ -570,9 +570,9 @@ if (!is.null(subcon_path)){
   
   cat("Cumulative number of participants: ",participant_subcon_count,"\n",sep = "")
   
-  cat("\nCumulative Gender:\n")
-  for (x in 1:dim(gender_subcon_count)[1]){
-    cat("\t",gender_subcon_count[x,1][[1]],": ",gender_subcon_count[x,"n"][[1]],"\n",sep = "")
+  cat("\nCumulative sex_at_birth:\n")
+  for (x in 1:dim(sex_at_birth_subcon_count)[1]){
+    cat("\t",sex_at_birth_subcon_count[x,1][[1]],": ",sex_at_birth_subcon_count[x,"n"][[1]],"\n",sep = "")
   }
   #close file
   sink()
